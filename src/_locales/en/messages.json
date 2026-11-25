@@ -18,10 +18,10 @@
 		"message": "Add provider"
 	},
 	"addToObsidian": {
-		"message": "Add to Obsidian"
+		"message": "Add to SilverBullet"
 	},
 	"addVaultPlaceholder": {
-		"message": "Press enter to add a vault"
+		"message": "Space name"
 	},
 	"advanced": {
 		"message": "Advanced"
@@ -96,7 +96,7 @@
 		"message": "Clip behavior"
 	},
 	"clipBehaviorDescription": {
-		"message": "Choose how highlighted content is saved to Obsidian. Defines the $strong_start${{content}}$strong_end$ variable.",
+		"message": "Choose how highlighted content is saved to SilverBullet. Defines the $strong_start${{content}}$strong_end$ variable.",
 		"placeholders": {
 			"strong_end": {
 				"content": "</strong>"
@@ -118,7 +118,7 @@
 		"message": "Close"
 	},
 	"commandOpenClipper": {
-		"message": "Open Obsidian Clipper"
+		"message": "Open Web Clipper for SilverBullet"
 	},
 	"commandQuickClip": {
 		"message": "Quick clip"
@@ -225,7 +225,7 @@
 		"message": "Embedded"
 	},
 	"enableHighlighterDescription": {
-		"message": "Highlight content on web pages that you can save to Obsidian."
+		"message": "Highlight content on web pages that you can save to SilverBullet."
 	},
 	"enableInterpreter": {
 		"message": "Enable interpreter"
@@ -283,10 +283,10 @@
 		}
 	},
 	"extensionDescription": {
-		"message": "Save content from the web in a private and durable format that you can access offline. The official browser extension for Obsidian."
+		"message": "Save web pages, selections and highlights as Markdown pages in your SilverBullet space. A fork of the Obsidian Web Clipper."
 	},
 	"extensionName": {
-		"message": "Obsidian Web Clipper"
+		"message": "Web Clipper for SilverBullet"
 	},
 	"failedToCopyText": {
 		"message": "Failed to copy text"
@@ -328,7 +328,7 @@
 		"message": "Failed to save file"
 	},
 	"failedToSaveFile": {
-		"message": "Failed to save file"
+		"message": "Failed to save to SilverBullet"
 	},
 	"failedToSaveProvider": {
 		"message": "Failed to save provider. Please try again."
@@ -891,7 +891,7 @@
 		"message": "Remove all properties that are not used in any template."
 	},
 	"removeVault": {
-		"message": "Remove vault"
+		"message": "Remove space"
 	},
 	"replaceContent": {
 		"message": "Replace the page content"
@@ -987,7 +987,7 @@
 		"message": "Save clipped note without opening it"
 	},
 	"silentOpenDescription": {
-		"message": "Clipped notes will be saved but will not open as a new tab. Obsidian will still be brought to the foreground."
+		"message": "Clipped notes will be saved without opening the page in a new tab."
 	},
 	"sort": {
 		"message": "Sort"
@@ -1065,10 +1065,10 @@
 		"message": "You are using the latest version."
 	},
 	"vault": {
-		"message": "Vault"
+		"message": "Space"
 	},
 	"vaultDescription": {
-		"message": "Select the default vault for this template. Go to $link_start$general settings$link_end$ to add or remove vaults.",
+		"message": "Select the default space for this template. Go to $link_start$general settings$link_end$ to add or remove spaces.",
 		"placeholders": {
 			"link_end": {
 				"content": "</a>"
@@ -1079,20 +1079,42 @@
 		}
 	},
 	"vaults": {
-		"message": "Vaults"
+		"message": "SilverBullet spaces"
 	},
 	"vaultsDescription": {
-		"message": "By default, clipped notes are saved to the currently open vault. You can add vaults here if you want the option to save to different vaults. Vault names must exactly match the name of the Obsidian vault. Press $strong_start$enter$strong_end$ to add a vault.",
-		"placeholders": {
-			"strong_end": {
-				"content": "</strong>"
-			},
-			"strong_start": {
-				"content": "<strong>"
-			}
-		}
+		"message": "Clips are saved to a SilverBullet space over its HTTP API. Use the space URL as it appears in your browser (for a multi-space server, include the space path) and an API token issued in the SilverBullet Dashboard for an account with write access. Tokens are stored only in this browser and are not included in settings exports."
 	},
 	"version": {
 		"message": "Version"
+	},
+	"sbSpaceNamePlaceholder": {
+		"message": "Name, for example Notes"
+	},
+	"sbSpaceUrlPlaceholder": {
+		"message": "Space URL, for example https://sb.example.com/notes"
+	},
+	"sbSpaceTokenPlaceholder": {
+		"message": "API token (leave empty to use your browser sign-in)"
+	},
+	"sbSpaceJournalPlaceholder": {
+		"message": "Journal page prefix, for example Journal/"
+	},
+	"sbAddSpace": {
+		"message": "Add space"
+	},
+	"sbCheckingConnection": {
+		"message": "Checking connection…"
+	},
+	"sbConnected": {
+		"message": "Connected. Space added."
+	},
+	"sbConnectedAs": {
+		"message": "Connected as $1. Space added."
+	},
+	"sbInvalidUrl": {
+		"message": "Enter the space URL, starting with https://"
+	},
+	"sbNoToken": {
+		"message": "browser sign-in"
 	}
 }

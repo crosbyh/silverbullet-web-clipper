@@ -1,48 +1,58 @@
-Obsidian Web Clipper helps you highlight and capture the web in your favorite browser. Anything you save is stored as durable Markdown files that you can read offline, and preserve for the long term.
+# Web Clipper for SilverBullet
 
-- **[Download Web Clipper](https://obsidian.md/clipper)**
-- **[Documentation](https://help.obsidian.md/web-clipper)**
-- **[Troubleshooting](https://help.obsidian.md/web-clipper/troubleshoot)**
+A fork of the [Obsidian Web Clipper](https://github.com/obsidianmd/obsidian-clipper) that saves clips to a [SilverBullet](https://silverbullet.md) space instead of an Obsidian vault.
 
-## Get started
+It keeps everything that makes the upstream clipper good: Defuddle article extraction, templates, variables and filters, the highlighter, reader view, and the AI interpreter. Only the last step changes. Instead of handing the note to the Obsidian app through an `obsidian://` link, the extension writes the page to SilverBullet's [HTTP API](https://docs.silverbullet.md/Integrations/HTTP%20API) (`/.fs`). Because the save is a real HTTP request, the popup reports failures (bad token, wrong URL, server unreachable) instead of failing silently, and clipping works on any device without a desktop app.
 
-Install the extension by downloading it from the official directory for your browser:
+This is an unofficial fork and is not affiliated with Obsidian or SilverBullet.
 
-- **[Chrome Web Store](https://chromewebstore.google.com/detail/obsidian-web-clipper/cnjifjpddelmedmihgijeibhnjfabmlf)** for Chrome, Brave, Arc, Orion, and other Chromium-based browsers.
-- **[Firefox Add-Ons](https://addons.mozilla.org/en-US/firefox/addon/web-clipper-obsidian/)** for Firefox and Firefox Mobile.
-- **[Safari Extensions](https://apps.apple.com/us/app/obsidian-web-clipper/id6720708363)** for macOS, iOS, and iPadOS.
-- **[Edge Add-Ons](https://microsoftedge.microsoft.com/addons/detail/obsidian-web-clipper/eigdjhmgnaaeaonimdklocfekkaanfme)** for Microsoft Edge.
+## Set up
 
-## Use the extension
+1. In SilverBullet's Dashboard, issue an **API token** for an account with write access to the space.
+2. Build and load the extension (see [Install the extension locally](#install-the-extension-locally)).
+3. Open the extension's settings. Under **SilverBullet spaces**, enter:
+   - **Name:** any label. Templates and the popup's space picker refer to spaces by this name.
+   - **Space URL:** the space's address as it appears in your browser. On a multi-space server, include the space's path, for example `https://sb.example.com/notes`.
+   - **API token:** the token from step 1. If you leave it empty, the extension sends your browser's SilverBullet session cookie instead (untested; the token is the reliable option).
+   - **Journal page prefix:** where daily notes go. Match the space's *Journal page prefix* setting (default `Journal/`).
+4. Click **Add space**. The extension checks the URL and token before saving the space.
 
-Documentation is available on the [Obsidian Help site](https://help.obsidian.md/web-clipper), which covers how to use [highlighting](https://help.obsidian.md/web-clipper/highlight), [templates](https://help.obsidian.md/web-clipper/templates), [variables](https://help.obsidian.md/web-clipper/variables), [filters](https://help.obsidian.md/web-clipper/filters), and more.
+Spaces and tokens are stored in the browser's local extension storage. They do not sync between browsers and are not included in **Export all settings**.
 
-## Contribute
+## How templates map to SilverBullet
 
-### Documentation
+| Template behavior | What happens in SilverBullet |
+|---|---|
+| Create new note | Creates `<path>/<note name>`. If that page exists, the clip goes to `<note name> 1`, `<note name> 2`, and so on. Nothing is overwritten. |
+| Overwrite note | Replaces the page. |
+| Add to an existing note (append/prepend) | Appends after a blank line, or prepends below the page's frontmatter. Creates the page if it is missing. Concurrent edits are detected (`If-Match`) and the clip is retried rather than overwriting them. |
+| Add to daily note (append/prepend) | Same as above, on `<journal prefix>YYYY-MM-DD`. A new journal page gets SilverBullet's journal frontmatter (`tags: journal`, `date`). |
 
-User documentation is maintained in the [`en/Obsidian Web Clipper` directory of obsidian-help](https://github.com/obsidianmd/obsidian-help/tree/master/en/Obsidian%20Web%20Clipper).
+Note names are cleaned to follow SilverBullet's [name rules](https://docs.silverbullet.md/Reference/Concepts/Names). Characters that reverse proxies such as Traefik reject in URLs (`? ; % \`) are removed too.
 
-### Translations
+After a successful save, the page opens in a new tab unless **Save clipped note without opening it** is on.
 
-You can help translate Web Clipper into your language. Submit your translation via pull request using the format found in the [/_locales](/src/_locales) folder.
+### Template tips
 
-### Features and bug fixes
+The upstream templates work as they are: frontmatter, `[[wiki links]]`, `==highlights==` and footnotes are all SilverBullet Markdown. Obsidian-only syntax in your own templates, such as callouts or `![[embeds]]` of Obsidian files, may render differently. Images stay as links to the original site, as they do upstream.
 
-See the [help wanted](https://github.com/obsidianmd/obsidian-clipper/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) tag for issues where contributions are welcome.
+For the template syntax, variables and filters, see the upstream [Web Clipper documentation](https://help.obsidian.md/web-clipper).
 
-## Roadmap
+## Differences from upstream
 
-In no particular order:
+- `src/utils/silverbullet-api.ts`: the `/.fs` client and save logic (unit tested in `silverbullet-api.test.ts`).
+- `src/utils/silverbullet-spaces.ts` and `src/utils/silverbullet-note-creator.ts`: space storage and the replacement for `saveToObsidian`.
+- The general settings "Vaults" list became a SilverBullet space manager. Legacy mode is hidden.
+- English strings, extension name, icons and logos are rebranded. Other languages still mention Obsidian in places.
+- The Firefox add-on ID is `silverbullet-web-clipper@crosbyh.github.io`.
+- The Safari/Xcode project and the CLI (`npm run build:cli`) are untouched and still target Obsidian.
 
-- [ ] Annotate highlights
-- [ ] Template directory
-- [ ] Sync settings across browsers
-- [x] A separate icon for Web Clipper (1.6.3)
-- [x] Template validation (1.1.0)
-- [x] Template logic (if/for)  (1.1.0)
-- [x] Save images locally ([Obsidian 1.8.0](https://obsidian.md/changelog/2024-12-18-desktop-v1.8.0/))
-- [x] Translate UI into more languages — help is welcomed
+The fork keeps its changes in a few files so upstream releases can be merged with few conflicts:
+
+```
+git fetch upstream
+git merge upstream/main
+```
 
 ## Developers
 
@@ -99,6 +109,14 @@ Or run in watch mode during development:
 npm run test:watch
 ```
 
+### Live test against a SilverBullet space
+
+`src/utils/silverbullet-api.live.test.ts` runs the save logic against a real space. It writes under `Inbox/Clipper live test <timestamp>/` and deletes the pages afterwards. It is skipped unless both variables are set:
+
+```
+SB_LIVE_URL=https://sb.example.com/notes SB_LIVE_TOKEN=... npx vitest run silverbullet-api.live
+```
+
 ## Third-party libraries
 
 - [webextension-polyfill](https://github.com/mozilla/webextension-polyfill) for browser compatibility
@@ -110,4 +128,4 @@ npm run test:watch
 
 ## License
 
-Obsidian Web Clipper source code is open source under the MIT License. All trademarks, icons, marketing copy, and other marketing assets are excluded from that license.
+The source code is MIT licensed, like the upstream project (see [LICENSE](LICENSE)). Obsidian's trademarks, icons and marketing assets are excluded from that license and are not used in this fork's Chrome and Firefox builds. The Safari/Xcode project still carries upstream's app icons.

@@ -299,6 +299,29 @@ label {
 	.setting-item-list-remove {
 		margin-inline-start: auto;
 	}
+	.sb-space-url {
+		color: var(--text-muted);
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}
+
+.sb-space-form {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	.sb-space-form-actions {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		button {
+			width: auto;
+		}
+	}
+	#sb-space-status.is-error {
+		color: var(--text-error);
+	}
 }
 
 .setting-item-list {

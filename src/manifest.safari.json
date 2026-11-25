@@ -1,9 +1,9 @@
 {
 	"manifest_version": 3,
-	"name": "Obsidian Web Clipper",
-	"homepage_url": "https://obsidian.md/",
+	"name": "Web Clipper for SilverBullet",
+	"homepage_url": "https://github.com/crosbyh/silverbullet-web-clipper",
 	"version": "1.8.5",
-	"description": "Save content from the web to Obsidian, in a private and durable format you can always access offline.",
+	"description": "Save web pages, selections and highlights as Markdown pages in your SilverBullet space. A fork of the Obsidian Web Clipper.",
 	"permissions": [
 		"activeTab",
 		"clipboardWrite",
@@ -58,7 +58,7 @@
 				"default": "Ctrl+Shift+O",
 				"mac": "Command+Shift+O"
 			},
-			"description": "Open Obsidian Clipper"
+			"description": "Open Web Clipper for SilverBullet"
 		},
 		"quick_clip": {
 			"suggested_key": {

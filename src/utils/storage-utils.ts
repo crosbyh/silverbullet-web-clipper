@@ -1,6 +1,7 @@
 import browser from './browser-polyfill';
 import { Settings, ModelConfig, PropertyType, HistoryEntry, Provider, Rating } from '../types/types';
 import { debugLog } from './debug';
+import { loadSpaces } from './silverbullet-spaces';
 
 export type { Settings, ModelConfig, PropertyType, HistoryEntry, Provider, Rating };
 
@@ -220,6 +221,10 @@ export async function loadSettings(): Promise<Settings> {
 		ratings: data.ratings || defaultSettings.ratings,
 		saveBehavior: data.general_settings?.saveBehavior ?? defaultSettings.saveBehavior
 	};
+
+	// SilverBullet fork: the vault list is the names of the configured spaces,
+	// which live in storage.local (see silverbullet-spaces.ts).
+	loadedSettings.vaults = (await loadSpaces()).map(space => space.name);
 
 	generalSettings = loadedSettings;
 	debugLog('Settings', 'Loaded settings:', generalSettings);

@@ -1,4 +1,3 @@
-import { handleDragStart, handleDragOver, handleDrop, handleDragEnd } from '../utils/drag-and-drop';
 import { initializeIcons } from '../icons/icons';
 import { getCommands } from '../utils/hotkeys';
 import { initializeToggles, updateToggleState, initializeSettingToggle } from '../utils/ui-utils';
@@ -18,6 +17,8 @@ import { getClipHistory } from '../utils/storage-utils';
 import dayjs from 'dayjs';
 import weekOfYear from 'dayjs/plugin/weekOfYear';
 import { showModal, hideModal } from '../utils/modal-utils';
+import { loadSpaces, saveSpaces } from '../utils/silverbullet-spaces';
+import { DEFAULT_JOURNAL_PREFIX, SilverBulletClient, SilverBulletSpace, normalizeSpaceUrl } from '../utils/silverbullet-api';
 
 dayjs.extend(weekOfYear);
 
@@ -28,24 +29,27 @@ const STORE_URLS = {
 	edge: 'https://microsoftedge.microsoft.com/addons/detail/obsidian-web-clipper/eigdjhmgnaaeaonimdklocfekkaanfme'
 };
 
-export function updateVaultList(): void {
+// SilverBullet fork: the "vault" list shows the configured SilverBullet spaces.
+// Names stay in generalSettings.vaults so the popup and template editor work unchanged.
+export async function updateVaultList(): Promise<void> {
 	const vaultList = document.getElementById('vault-list') as HTMLUListElement;
 	if (!vaultList) return;
 
-	// Clear existing vaults
+	const spaces = await loadSpaces();
+	generalSettings.vaults = spaces.map(space => space.name);
+
 	vaultList.textContent = '';
-	generalSettings.vaults.forEach((vault, index) => {
+	spaces.forEach((space, index) => {
 		const li = document.createElement('li');
 		li.dataset.index = index.toString();
-		li.draggable = true;
 
-		const dragHandle = createElementWithClass('div', 'drag-handle');
-		dragHandle.appendChild(createElementWithHTML('i', '', { 'data-lucide': 'grip-vertical' }));
-		li.appendChild(dragHandle);
+		const name = document.createElement('span');
+		name.textContent = space.name;
+		li.appendChild(name);
 
-		const span = document.createElement('span');
-		span.textContent = vault;
-		li.appendChild(span);
+		const url = createElementWithClass('span', 'sb-space-url');
+		url.textContent = space.url + (space.token ? '' : ` (${getMessage('sbNoToken')})`);
+		li.appendChild(url);
 
 		const removeBtn = createElementWithClass('button', 'setting-item-list-remove clickable-icon');
 		removeBtn.setAttribute('type', 'button');
@@ -53,10 +57,6 @@ export function updateVaultList(): void {
 		removeBtn.appendChild(createElementWithHTML('i', '', { 'data-lucide': 'trash-2' }));
 		li.appendChild(removeBtn);
 
-		li.addEventListener('dragstart', handleDragStart);
-		li.addEventListener('dragover', handleDragOver);
-		li.addEventListener('drop', handleDrop);
-		li.addEventListener('dragend', handleDragEnd);
 		removeBtn.addEventListener('click', (e) => {
 			e.stopPropagation();
 			removeVault(index);
@@ -67,16 +67,18 @@ export function updateVaultList(): void {
 	initializeIcons(vaultList);
 }
 
-export function addVault(vault: string): void {
-	generalSettings.vaults.push(vault);
-	saveSettings();
-	updateVaultList();
+export async function addSpace(space: SilverBulletSpace): Promise<void> {
+	const spaces = (await loadSpaces()).filter(existing => existing.name !== space.name);
+	spaces.push(space);
+	await saveSpaces(spaces);
+	await updateVaultList();
 }
 
-export function removeVault(index: number): void {
-	generalSettings.vaults.splice(index, 1);
-	saveSettings();
-	updateVaultList();
+export async function removeVault(index: number): Promise<void> {
+	const spaces = await loadSpaces();
+	spaces.splice(index, 1);
+	await saveSpaces(spaces);
+	await updateVaultList();
 }
 
 export async function setShortcutInstructions() {
@@ -279,19 +281,62 @@ function initializeShowMoreActionsToggle(): void {
 }
 
 function initializeVaultInput(): void {
-	const vaultInput = document.getElementById('vault-input') as HTMLInputElement;
-	if (vaultInput) {
-		vaultInput.addEventListener('keypress', (e) => {
+	const nameInput = document.getElementById('sb-space-name') as HTMLInputElement | null;
+	const urlInput = document.getElementById('sb-space-url') as HTMLInputElement | null;
+	const tokenInput = document.getElementById('sb-space-token') as HTMLInputElement | null;
+	const journalInput = document.getElementById('sb-space-journal') as HTMLInputElement | null;
+	const addButton = document.getElementById('sb-space-add') as HTMLButtonElement | null;
+	const status = document.getElementById('sb-space-status');
+	if (!nameInput || !urlInput || !tokenInput || !journalInput || !addButton || !status) return;
+
+	const setStatus = (message: string, isError = false) => {
+		status.textContent = message;
+		status.classList.toggle('is-error', isError);
+	};
+
+	const add = async () => {
+		const url = normalizeSpaceUrl(urlInput.value);
+		const name = nameInput.value.trim() || url.replace(/^https?:\/\//, '');
+		if (!/^https?:\/\/[^/]+/i.test(url)) {
+			setStatus(getMessage('sbInvalidUrl'), true);
+			return;
+		}
+		const space: SilverBulletSpace = {
+			name,
+			url,
+			token: tokenInput.value.trim(),
+			journalPrefix: journalInput.value.trim(),
+		};
+
+		addButton.disabled = true;
+		setStatus(getMessage('sbCheckingConnection'));
+		try {
+			const username = await new SilverBulletClient(space).checkConnection();
+			await addSpace(space);
+			nameInput.value = '';
+			urlInput.value = '';
+			tokenInput.value = '';
+			journalInput.value = DEFAULT_JOURNAL_PREFIX;
+			setStatus(username ? getMessage('sbConnectedAs', [username]) : getMessage('sbConnected'));
+		} catch (error) {
+			setStatus(error instanceof Error ? error.message : String(error), true);
+		} finally {
+			addButton.disabled = false;
+		}
+	};
+
+	addButton.addEventListener('click', (e) => {
+		e.preventDefault();
+		add();
+	});
+	[nameInput, urlInput, tokenInput, journalInput].forEach(input => {
+		input.addEventListener('keypress', (e) => {
 			if (e.key === 'Enter') {
 				e.preventDefault();
-				const newVault = vaultInput.value.trim();
-				if (newVault) {
-					addVault(newVault);
-					vaultInput.value = '';
-				}
+				add();
 			}
 		});
-	}
+	});
 }
 
 async function initializeKeyboardShortcuts(): Promise<void> {
